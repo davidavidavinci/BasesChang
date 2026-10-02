@@ -1,67 +1,78 @@
-create table estudiante(
-    id_estudiante number,
+create table empleado(
+    id_empleado number,
     nombre varchar2(30),
-    telefono number,
-    max_creditos number,
-    total_creditos_mat number,
-    primary key(id_estudiante)
+    id_departamento number,
+    id_jefe number,
+    salario number,
+    primary key(id_empleado)
 );
 
-create table curso(
-    id_curso number,
+create table articulo(
+    id_articulo number,
     nombre varchar2(30),
-    creditos number,
-    primary key(id_curso)
+    existencia number,
+    primary key(id_articulo)
 );
 
-create table matricula(
-    id_matricula number,
-    id_estudiante number,
-    periodo varchar2(30),
-    creditos_mat number,
-    primary key(id_matricula, id_estudiante)
+create table movimiento(
+    id_movimiento number,
+    fecha date,
+    tipo_mov varchar2(30),
+    id_bodega number,
+    id_empleado number,
+    referencia varchar2(100),
+    primary key(id_movimiento)
 );
 
-create table matricula_detalle(
-    id_matricula number,
-    id_curso number,
-    primary key(id_matricula, id_curso)
+create table movimiento_detalle(
+    id_movimiento number,
+    id_producto number,
+    cantidad number,
+    primary key(id_movimiento, id_producto)
 );
 
--- Inserts estudiante
-insert into estudiante values(1, 'Fulano', 1111, 12, 11);
-insert into estudiante values(2, 'Mengano', 2222, 12, 10);
-insert into estudiante values(3, 'Sutano', 3333, 12, 9);
-    
--- Inserts curso
-insert into curso values(1, 'Programación I', 4);
-insert into curso values(2, 'Cálculo I', 3);
-insert into curso values(3, 'Seminario II', 2);
+create table bodega(
+    id_bodega number,
+    existencia_total_bodega number,
+    primary key(id_bodega)
+);
 
--- Triggers
-create or replace trigger validacion_matricula
-    before insert on matricula_detalle
+create table bodega_producto(
+    id_bodega number,
+    id_producto number,
+    existencia number,
+    primary key(id_bodega, id_producto)
+);
+
+create table permiso(
+    id_bodega number,
+    id_empleado number,
+    primary key(id_bodega, id_empleado)
+);
+
+create table tope(
+    id_empleado number,
+    id_producto number,
+    cant_maxima_mes number,
+    primary key(id_empleado, id_producto)
+);
+
+-- Genera el campo referencia de forma automática
+create or replace trigger referencia_automatica
+    before insert on movimiento
     for each row
 declare
-    v_estudiante number;
-    v_cred_mat number;
-    v_cred_max number;
-    v_cred_curso number;
+    v_consecutivo number;
 begin
-    select id_estudiante, total_creditos_mat
-        into v_estudiante, v_cred_mat
-        from matricula
-        where id_matricula =:new.id_matricula;
+    select count(*) + 1 
+        into v_consecutivo
+        from movimiento
+        where id_bodega = :new.id_bodega and tipo_mov = :new.tipo_mov;
     
-    select max_creditos 
-        into v_cred_max
-        from estudiante
-        where id_estudiante =v_estudiante;
-    
-    select creditos 
-        into v_cred_curso
-        from curso
-        where id_curso =:new.id_curso;
-    
-    -- Validaciones: 
+    :new.referencia := :new.id_bodega||':'||
+                       :new.tipo_mov||':'||
+                       v_consecutivo;
 end;
+
+-- Empleado solo puede realizar movimientos para los que tiene permiso,
+-- Jefe no necesita permiso
