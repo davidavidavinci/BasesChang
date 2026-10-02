@@ -47,7 +47,6 @@ declare
     v_cred_mat number;
     v_cred_max number;
     v_cred_curso number;
-    v_cursos_previos number;
 begin
     select id_estudiante, total_creditos_mat
         into v_estudiante, v_cred_mat
@@ -57,30 +56,12 @@ begin
     select max_creditos 
         into v_cred_max
         from estudiante
-        where id_estudiante = v_estudiante;
+        where id_estudiante =v_estudiante;
     
     select creditos 
         into v_cred_curso
         from curso
-        where id_curso = :new.id_curso;
-        
-    SELECT COUNT(*)
-        INTO v_cursos_previos
-        FROM matricula_detalle md
-        JOIN matricula m ON md.id_matricula = m.id_matricula
-        WHERE m.id_estudiante = v_estudiante
-        AND md.id_Curso = :NEW.id_Curso;
+        where id_curso =:new.id_curso;
     
-    -- Validaciones
-    IF v_cursos_previos > 0 THEN
-        RAISE_APPLICATION_ERROR(-20002, 'Error: El estudiante ya matriculó este curso.');
-    END IF;
-    
-    UPDATE Matricula
-    SET creditos_mat = creditos_mat + v_cred_curso
-    WHERE id_matricula = :NEW.id_matricula;
-    
-    UPDATE Estudiante
-    SET total_creditos_mat = total_creditos_mat + v_cred_curso
-    WHERE id_estudiante = v_Estudiante;
+    -- Validaciones: 
 end;
