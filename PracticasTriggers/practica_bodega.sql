@@ -57,7 +57,7 @@ create table tope(
     primary key(id_empleado, id_producto)
 );
 
--- Genera el campo referencia de forma automática
+-- Ejercicio 1
 create or replace trigger referencia_automatica
     before insert on movimiento
     for each row
@@ -74,5 +74,12 @@ begin
                        v_consecutivo;
 end;
 
--- Empleado solo puede realizar movimientos para los que tiene permiso,
--- Jefe no necesita permiso
+-- Ejercicio 2
+--create or replace trigger permisos_empleado
+--    before insert on movimiento
+--    for each row
+--declare
+--    
+--begin
+--
+--end;
