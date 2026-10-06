@@ -108,9 +108,10 @@ create or replace function cantCursosRestantes(pEstudiante in number)
         where idCarrera = pCarrera;
         
     cursor cCursosAprobados(pcEstudiante number) is
-        select idCurso
-        from matricula
-        where idEstudiante = pEstudiante and resultado = 'Aprobado';
+        select mat.idCurso
+        from matricula mat
+        join estudiante e on e.idEstudiante = mat.idEstudiante
+        where mat.idEstudiante = pcEstudiante and mat.resultado = 'Aprobado' and mat.idCurso in (select idCurso from malla where idCarrera = e.idCarrera);
 BEGIN
     select idCarrera
         into vCarrera
